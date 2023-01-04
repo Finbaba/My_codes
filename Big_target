@@ -1,0 +1,68 @@
+from pprint import pprint
+import pdb 
+import pandas as pd
+import time
+import zrd_login
+import datetime
+import support_file01 as sf
+import xlwings as xw
+
+def init():
+    global name, Status,final_result, kite, breakin_time, breakout_time, wb, sht, Qty, name1, Stoploss,Target,tradeno,Day,expiry
+    kite = zrd_login.kite
+    name = 'NIFTY 50'
+    name1 = 'NIFTY'
+    Status = {'Date': None, 'Entry_time': None, 'Qty': None,'traded_CE':None, 'close':None}
+    final_result = {}
+    wb = xw.Book('big_target_excel.xlsx')
+    sht = wb.sheets['Sheet1']
+    # sht1 = wb.sheets['Sheet2']
+    Qty = 25
+    expiry = '23105'
+    Day = datetime.datetime.today().strftime('%A')
+    # Stoploss = 
+    Target = [0.02,0.03,0.04,0.05,0.06,0.07]
+    tradeno = 0 
+    
+ 
+
+
+init()
+
+while True:
+    try:
+        ctime1 = datetime.datetime.now().time()
+        # print(ctime1)
+        ctime = datetime.datetime.now()
+        # final_result[tradeno] = Status.copy()
+        # sht1.range('A1').value = pd.DataFrame(final_result).T
+        ltp = sf.LTP(name)
+        step_value = 100
+        multiplier = 0
+        atm_strike = round(ltp/step_value)* step_value + multiplier*step_value
+        CE_ATM = (name1 + expiry + str(atm_strike ) + 'CE' )
+        PE_ATM = (name1 + expiry + str(atm_strike ) + 'PE' )
+        ltp_CE_ATM = sf.LTP_NFO(CE_ATM)
+        ltp_PE_ATM = sf.LTP_NFO(PE_ATM)
+        sht.range('F1').value = 'SIGNAL'
+        buy_signal = sht.range('F2:F410').value 
+        hist = sf.histo_data(name= 'NIFTY 50', segment='NSE:', delta=1, interval='minute', continuous=False, oi=False)
+        hist = hist.set_index('date')
+        pdb.set_trace()
+        Completed_candle = pd.Series(datetime.datetime.now()).dt.floor('1min')[0] - datetime.timedelta(minutes=1)
+        Completed_candle = Completed_candle.strftime("%Y-%m-%d %H:%M:%S+05:30")
+        Status['close']  = hist.loc[Completed_candle]['close']
+
+
+        j = 2
+        for i in buy_signal:
+            if (i == 'BUY_CALL') and (Status['traded_CE_'] is None):
+                Status_B = {'traded_CE_F'+str(j):None}
+                if Status_B('traded_CE_F'+str(j)) is None:
+                    print('yes')
+            j = j + 1        
+
+    except Exception as e:
+        print(e)
+        continue
+      
